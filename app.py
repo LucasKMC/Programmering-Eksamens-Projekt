@@ -1,4 +1,5 @@
 # filename: song_recommender_oop_artist.py
+
 import streamlit as st
 
 # ---------------------------
@@ -25,9 +26,10 @@ class Song:
 # Recommender-klasse
 # ---------------------------
 class Recommender:
-    def __init__(self, songs):
+    def __init__(self, songs, weights=None):
         self.songs = songs
         self.normalize_time()
+        self.weights = weights if weights else [1]*8
 
     def normalize_time(self):
         min_year = min(song.tidsperiode for song in self.songs)
@@ -38,7 +40,7 @@ class Recommender:
     def euclidean_distance(self, song1, song2):
         f1 = song1.features()
         f2 = song2.features()
-        dist = sum((a-b)**2 for a,b in zip(f1, f2))**0.5
+        dist = sum(w*(a-b)**2 for w, a, b in zip(self.weights, f1, f2))**0.5
         return dist
 
     def recommend(self, selected_song, n=5):
@@ -90,7 +92,10 @@ Song("Talk To Me", "Tory Lanez", 0.5, 0.5, 0.0, 0.75, 0.65, 0.7, 0.25, 2015),
 st.title("Song Recommender")
 st.write("Vælg en sang, og programmet anbefaler lignende sange.")
 
-recommender = Recommender(songs)
+recommender = Recommender(
+        songs,
+        weights=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5]
+        )
 
 # Lav liste med titel + kunstner
 song_options = [f"{song.title} - {song.artist}" for song in songs]
