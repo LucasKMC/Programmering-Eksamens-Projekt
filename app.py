@@ -90,26 +90,57 @@ Song("Talk To Me", "Tory Lanez", 0.5, 0.5, 0.0, 0.75, 0.65, 0.7, 0.25, 2015),
 # Streamlit UI
 # ---------------------------
 st.title("Song Recommender")
-st.write("Vælg en sang, og programmet anbefaler lignende sange.")
+st.write("Vælg enten en sang eller juster parametre for at få anbefalinger.")
 
 recommender = Recommender(
-        songs,
-        weights=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5]
+    songs,
+    weights=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5]
+)
+
+mode = st.radio("Vælg metode:", ["Vælg sang", "Vælg parametre"])
+
+# ---------------------------
+# MODE 1: Vælg sang
+# ---------------------------
+if mode == "Vælg sang":
+    song_options = [f"{song.title} - {song.artist}" for song in songs]
+    song_choice_str = st.selectbox("Vælg en sang:", song_options)
+
+    selected_title = song_choice_str.split(" - ")[0]
+    selected_song = next(song for song in songs if song.title == selected_title)
+
+    recommended_songs = recommender.recommend(selected_song)
+
+    st.subheader("Anbefalede sange:")
+    for song in recommended_songs:
+        st.write(f"{song.title} af {song.artist}")
+
+# ---------------------------
+# MODE 2: Vælg parametre
+# ---------------------------
+elif mode == "Vælg parametre":
+    st.subheader("Indstil dine præferencer")
+
+    pop = st.slider("Pop", 0.0, 1.0, 0.5)
+    rap = st.slider("Rap", 0.0, 1.0, 0.5)
+    indie = st.slider("Indie", 0.0, 1.0, 0.5)
+    RnB = st.slider("R&B", 0.0, 1.0, 0.5)
+    energi = st.slider("Energi", 0.0, 1.0, 0.5)
+    glad = st.slider("Glad", 0.0, 1.0, 0.5)
+    trist = st.slider("Trist", 0.0, 1.0, 0.5)
+    tidsperiode = st.slider("År", 2000, 2023, 2018)
+
+    if st.button("Find anbefalinger", key="param_button"):
+        selected_song = Song(
+            "Din smag", "Dig",
+            pop, rap, indie, RnB,
+            energi, glad, trist,
+            tidsperiode
         )
 
-# Lav liste med titel + kunstner
-song_options = [f"{song.title} - {song.artist}" for song in songs]
+        recommender.normalize_time()
+        recommended_songs = recommender.recommend(selected_song)
 
-song_choice_str = st.selectbox("Vælg en sang:", song_options)
-
-# Find valgt sang ud fra titel (før " - ")
-selected_title = song_choice_str.split(" - ")[0]
-selected_song = next(song for song in songs if song.title == selected_title)
-
-# Få anbefalinger
-recommended_songs = recommender.recommend(selected_song)
-
-# Vis resultater
-st.subheader("Anbefalede sange:")
-for song in recommended_songs:
-    st.write(f"{song.title} af {song.artist}")
+        st.subheader("Anbefalede sange:")
+        for song in recommended_songs:
+            st.write(f"{song.title} af {song.artist}")
