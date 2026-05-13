@@ -1,10 +1,5 @@
-# filename: song_recommender_oop_artist.py
-
 import streamlit as st
 
-# ---------------------------
-# Song-klasse
-# --------------------------- 
 class Song:
     def __init__(self, title, artist, pop, rap, indie, RnB, energi, glad, trist, tidsperiode):
         self.title = title
@@ -17,14 +12,11 @@ class Song:
         self.glad = glad
         self.trist = trist
         self.tidsperiode = tidsperiode
-        self.tidsperiode_norm = 0  # bliver sat senere
+        self.tidsperiode_norm = 0  
 
     def features(self):
         return [self.pop, self.rap, self.indie, self.RnB, self.energi, self.glad, self.trist, self.tidsperiode_norm]
 
-# ---------------------------
-# Recommender-klasse
-# ---------------------------
 class Recommender:
     def __init__(self, songs, weights=None):
         self.songs = songs
@@ -32,6 +24,19 @@ class Recommender:
         self.weights = weights if weights else [1]*8
 
     def normalize_time(self):
+        """
+        Normaliserer tidsperioden for alle sange i datasættet.
+
+        Funktionen finder den mindste og største tidsperiode blandt sangene
+        og skalerer derefter hver sangs tidsperiode til en værdi mellem 0 og 1.
+        Den normaliserede værdi gemmes i attributten tidsperiode_norm.
+
+        Formel:
+            (værdi - minimum) / (maksimum - minimum)
+
+        Dette gør det lettere at sammenligne tidsperioder med andre features,
+        da alle værdier kommer til at ligge inden for samme interval.
+        """
         min_year = min(song.tidsperiode for song in self.songs)
         max_year = max(song.tidsperiode for song in self.songs)
         for song in self.songs:
@@ -52,9 +57,6 @@ class Recommender:
         distances.sort(key=lambda x: x[0])
         return [song for _, song in distances[:n]]
 
-# ---------------------------
-# Datasæt
-# ---------------------------
 songs = [
 Song("Blinding Lights", "The Weeknd", 0.9, 0.0, 0.1, 0.4, 0.8, 0.9, 0.1, 2019),
 Song("Shape of You", "Ed Sheeran", 0.8, 0.2, 0.0, 0.6, 0.7, 0.8, 0.2, 2017),
@@ -86,9 +88,6 @@ Song("Talk To Me", "Tory Lanez", 0.5, 0.5, 0.0, 0.75, 0.65, 0.7, 0.25, 2015),
 
 ]
 
-# ---------------------------
-# Streamlit UI
-# ---------------------------
 st.title("Song Recommender")
 st.write("Vælg enten en sang eller juster parametre for at få anbefalinger.")
 
@@ -99,9 +98,6 @@ recommender = Recommender(
 
 mode = st.radio("Vælg metode:", ["Vælg sang", "Vælg parametre"])
 
-# ---------------------------
-# MODE 1: Vælg sang
-# ---------------------------
 if mode == "Vælg sang":
     song_options = [f"{song.title} - {song.artist}" for song in songs]
     song_choice_str = st.selectbox("Vælg en sang:", song_options)
@@ -115,9 +111,7 @@ if mode == "Vælg sang":
     for song in recommended_songs:
         st.write(f"{song.title} af {song.artist}")
 
-# ---------------------------
-# MODE 2: Vælg parametre
-# ---------------------------
+
 elif mode == "Vælg parametre":
     st.subheader("Indstil dine præferencer")
 
